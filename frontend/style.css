@@ -1,0 +1,271 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;800&family=Inter:wght@300;400;600;700&display=swap');
+
+/* ── Transparent background so video shows through ── */
+html,
+body,
+.stApp,
+[data-testid="stAppViewContainer"],
+[data-testid="stHeader"],
+[data-testid="stToolbar"],
+[data-testid="stDecoration"],
+[data-testid="stBottom"],
+[data-testid="stMain"],
+section.main>div {
+    background: transparent !important;
+    background-color: transparent !important;
+}
+
+.stApp {
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+}
+
+#MainMenu,
+footer,
+header {
+    visibility: hidden;
+}
+
+/* ── Glassmorphism main container ── */
+.block-container {
+    background: rgba(6, 16, 35, 0.62) !important;
+    backdrop-filter: blur(24px) !important;
+    -webkit-backdrop-filter: blur(24px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 22px !important;
+    padding: 2rem 3rem 3.5rem !important;
+    max-width: 1200px !important;
+    margin: 3vh auto !important;
+    box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.85) !important;
+    animation: fadeUp 0.8s ease-out;
+}
+
+/* ── Navbar logo ── */
+.nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: white;
+    padding: 0.4rem 0;
+}
+
+/* ── All nav/action buttons ── */
+.stButton>button {
+    background: rgba(255, 255, 255, 0.06) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-weight: 500 !important;
+    font-size: 0.88rem !important;
+    padding: 0.5rem 0.8rem !important;
+    border-radius: 10px !important;
+    transition: all 0.22s ease !important;
+    width: 100% !important;
+    letter-spacing: 0.2px !important;
+}
+
+.stButton>button:hover {
+    background: rgba(56, 189, 248, 0.12) !important;
+    border-color: rgba(56, 189, 248, 0.4) !important;
+    color: white !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(56, 189, 248, 0.2) !important;
+}
+
+.stButton>button[kind="primary"] {
+    background: linear-gradient(135deg, #38bdf8, #6366f1) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: 700 !important;
+    font-size: 1rem !important;
+    padding: 0.85rem !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 20px rgba(56, 189, 248, 0.35) !important;
+}
+
+.stButton>button[kind="primary"]:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 30px rgba(56, 189, 248, 0.55) !important;
+}
+
+/* ── Hero ── */
+.hero-container {
+    padding: 2rem 0 2.5rem;
+}
+
+.hero-badge {
+    display: inline-block;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    color: #38bdf8;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 0.3rem 1.1rem;
+    border-radius: 30px;
+    margin-bottom: 1.3rem;
+    letter-spacing: 0.5px;
+}
+
+.hero-title {
+    font-family: 'Playfair Display', serif !important;
+    color: white !important;
+    font-size: 4.2rem !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    margin-bottom: 1.2rem !important;
+    letter-spacing: -1px !important;
+}
+
+.hero-subtitle {
+    color: rgba(255, 255, 255, 0.65);
+    font-size: 1.05rem;
+    font-weight: 300;
+    max-width: 640px;
+    line-height: 1.75;
+}
+
+/* ── Feature cards ── */
+.feature-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 16px;
+    padding: 1.8rem;
+    height: 100%;
+    transition: all 0.28s ease;
+    cursor: default;
+}
+
+.feature-card:hover {
+    background: rgba(56, 189, 248, 0.07);
+    border-color: rgba(56, 189, 248, 0.28);
+    transform: translateY(-4px);
+    box-shadow: 0 14px 35px -10px rgba(56, 189, 248, 0.18);
+}
+
+.fi {
+    font-size: 2rem;
+    margin-bottom: 0.9rem;
+}
+
+.feature-card h3 {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0 0 0.6rem;
+}
+
+.feature-card p {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.88rem;
+    line-height: 1.65;
+    margin: 0;
+}
+
+/* ── Stat cards ── */
+.stat-card {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 13px;
+    padding: 1.2rem 1.4rem;
+    transition: all 0.25s ease;
+}
+
+.stat-card:hover {
+    border-color: rgba(56, 189, 248, 0.3);
+    background: rgba(56, 189, 248, 0.05);
+}
+
+/* ── Section headers ── */
+.card {
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 0 0 0.6rem;
+    margin-bottom: 1.1rem;
+}
+
+.card h3 {
+    color: white;
+    font-weight: 700;
+    font-size: 1.35rem;
+    margin: 0;
+}
+
+/* ── Geo stats ── */
+.geo-stat {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.3rem;
+}
+
+.geo-icon {
+    border-radius: 11px;
+    padding: 9px 12px;
+    font-size: 1.1rem;
+    margin-right: 13px;
+    flex-shrink: 0;
+}
+
+.geo-label {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.geo-value {
+    margin: 0;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+/* ── File uploader ── */
+[data-testid="stFileUploader"] {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px dashed rgba(56, 189, 248, 0.3);
+    border-radius: 14px;
+    padding: 0.3rem;
+}
+
+/* ── Progress bars ── */
+.stProgress>div>div>div>div {
+    background: linear-gradient(90deg, #38bdf8, #6366f1);
+}
+
+/* ── Spinner color ── */
+.stSpinner>div {
+    border-top-color: #38bdf8 !important;
+}
+
+/* ── Altair chart transparent ── */
+.vega-embed,
+.vega-embed canvas {
+    background: transparent !important;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+    width: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(56, 189, 248, 0.3);
+    border-radius: 10px;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

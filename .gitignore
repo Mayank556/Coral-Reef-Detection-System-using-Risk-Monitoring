@@ -1,0 +1,39 @@
+# Env
+venv/
+gpu_env/
+.env
+
+# Media & Archives
+*.mp4
+*.zip
+*.rar
+*.7z
+
+# Outputs
+outputs/
+logs/
+*.txt
+
+# Byte-compiled
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Trained model weights
+trained_models/
+*.pth
+*.h5
+
+# Dataset (too large for git)
+Merged_Coral_Dataset/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
