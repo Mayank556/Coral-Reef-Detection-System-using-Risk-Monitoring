@@ -7,6 +7,9 @@ import altair as alt
 from PIL import Image
 from datetime import datetime, timedelta
 import streamlit.components.v1 as components
+import torch, cv2
+from utils.inference import CoralInferencePipeline
+from utils.explainability import UnifiedXAI
 
 st.set_page_config(page_title="CoralVisionNet", page_icon="🪸", layout="wide", initial_sidebar_state="collapsed")
 
@@ -21,12 +24,79 @@ components.html("""<script>
 const d = window.parent.document;
 if (!d.getElementById('bg-vid')) {
     const v = d.createElement('video');
-    v.id = 'bg-vid'; v.src = 'http://localhost:8000/static/marine.mp4';
+    v.id = 'bg-vid'; v.src = 'https://raw.githubusercontent.com/Mayank556/Coral-Reef-Detection-System-using-Risk-Monitoring/main/marine.mp4';
     v.autoplay = true; v.loop = true; v.muted = true; v.playsInline = true;
     v.style.cssText = 'position:fixed;top:0;left:0;width:100vw;height:100vh;object-fit:cover;z-index:-999;filter:brightness(0.32) contrast(1.2) saturate(1.3)';
     d.body.prepend(v);
 }
 </script>""", height=0, width=0)
+
+# ── AI Model Loader (Integrated Backend) ──────────────────────────────────────
+@st.cache_resource
+def get_ai_engine():
+    model_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "outputs", "best_model.pth")
+    if not os.path.exists(model_path):
+        model_path = os.path.join(os.getcwd(), "outputs", "best_model.pth")
+        
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    try:
+        pipeline = CoralInferencePipeline(model_path, device=device)
+        xai = UnifiedXAI(pipeline.model)
+        return pipeline, xai
+    except Exception as e:
+        st.error(f"Failed to load AI models: {e}")
+        return None, None
+
+def run_local_inference(image_bytes, pipeline, xai):
+    nparr = np.frombuffer(image_bytes, np.uint8)
+    image_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    result = pipeline.predict(image_bgr, use_mc_dropout=True)
+    
+    if "PartiallyBleached" in result["probabilities"]:
+        del result["probabilities"]["PartiallyBleached"]
+        total_prob = sum(result["probabilities"].values())
+        if total_prob > 0:
+            for cls_name in result["probabilities"]:
+                result["probabilities"][cls_name] /= total_prob
+        new_pred_class = max(result["probabilities"], key=result["probabilities"].get)
+        result["class"] = new_pred_class
+        result["confidence"] = result["probabilities"][new_pred_class]
+        result["class_index"] = ["Bleached", "Dead", "Healthy", "PartiallyBleached"].index(new_pred_class)
+
+    rgb_tensor, lab_tensor = pipeline.preprocessor(image_bgr)
+    rgb_tensor = rgb_tensor.unsqueeze(0).to(pipeline.device)
+    lab_tensor = lab_tensor.unsqueeze(0).to(pipeline.device)
+    overlay, maps = xai.explain(rgb_tensor, lab_tensor, result["class_index"], original_image=image_bgr)
+    
+    if overlay is not None:
+        _, buffer = cv2.imencode('.jpg', overlay)
+        result["heatmap_base64"] = base64.b64encode(buffer).decode('utf-8')
+        if "unified" in maps:
+            unified_map = maps["unified"]
+            orig_h, orig_w = image_bgr.shape[:2]
+            attn = cv2.resize(unified_map.astype(np.float32), (orig_w, orig_h))
+            attn = (attn - attn.min()) / (attn.max() - attn.min() + 1e-8)
+            gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+            edges = cv2.Canny(gray, 25, 80)
+            texture_mask = cv2.dilate(edges, np.ones((18, 18), np.uint8), iterations=2).astype(np.float32) / 255.0
+            combined = attn * texture_mask
+            binary_map = (combined > 0.35).astype(np.uint8) * 255
+            contours, _ = cv2.findContours(binary_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)
+            bbox_img = image_bgr.copy()
+            BOX_COLOR = (0, 220, 110)
+            drawn = 0
+            for cnt in contours[:3]:
+                if cv2.contourArea(cnt) < 0.02 * orig_w * orig_h: continue
+                x, y, w, h = cv2.boundingRect(cnt)
+                cv2.rectangle(bbox_img, (x, y), (x+w, y+h), BOX_COLOR, 2)
+                drawn += 1
+            if drawn == 0 and contours:
+                x, y, w, h = cv2.boundingRect(np.vstack(contours))
+                cv2.rectangle(bbox_img, (x, y), (x+w, y+h), BOX_COLOR, 2)
+            _, bbox_buffer = cv2.imencode('.jpg', bbox_img)
+            result["bbox_base64"] = base64.b64encode(bbox_buffer).decode('utf-8')
+    return result
 
 # ── Session State ─────────────────────────────────────────────────────────────
 if "page" not in st.session_state:
@@ -122,15 +192,18 @@ elif PAGE == "Analyse":
         with res_col:
             st.markdown('<div class="card"><h3>⚡ AI Classification</h3></div>', unsafe_allow_html=True)
             if st.button("🚀 Run CoralVisionNet Analysis", type="primary", use_container_width=True):
-                with st.spinner("Running tri-stream inference..."):
-                    try:
-                        resp = requests.post("http://localhost:8000/predict", files={"file": uploaded.getvalue()})
-                        if resp.status_code == 200:
-                            st.session_state.result = resp.json()
-                        else:
-                            st.error(f"Backend error: {resp.status_code}")
-                    except Exception as e:
-                        st.error(f"❌ Cannot connect to backend (port 8000). {e}")
+                with st.spinner("Loading AI Engine..."):
+                    pipeline, xai = get_ai_engine()
+                
+                if pipeline and xai:
+                    with st.spinner("Running tri-stream inference..."):
+                        try:
+                            result = run_local_inference(uploaded.getvalue(), pipeline, xai)
+                            st.session_state.result = result
+                        except Exception as e:
+                            st.error(f"❌ Inference failed: {e}")
+                else:
+                    st.error("❌ AI Engine could not be initialized. Check model weights in 'outputs/' folder.")
 
             if st.session_state.result:
                 res = st.session_state.result
